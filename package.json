@@ -28,6 +28,7 @@
     "@capacitor/cli": "^8.4.2",
     "@types/react": "latest",
     "@types/react-dom": "latest",
+    "playwright-core": "^1.62.0",
     "vitest": "^4.1.10"
   }
 }

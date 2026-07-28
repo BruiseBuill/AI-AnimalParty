@@ -1,12 +1,22 @@
 export type SeatPosition = { x: number; y: number };
+export type TableGeometry = {
+  width: number;
+  height: number;
+  avatarDiameter: number;
+  edgeGap?: number;
+};
 
-const CENTER_PERCENT = 50;
-const RING_RADIUS_PERCENT = 46;
+export function getSeatPositions(playerCount: number, geometry: TableGeometry): SeatPosition[] {
+  const centerX = geometry.width / 2;
+  const centerY = geometry.height / 2;
+  const edgeGap = geometry.edgeGap ?? 4;
+  const radius = Math.max(0, Math.min(geometry.width, geometry.height) / 2 - geometry.avatarDiameter / 2 - edgeGap);
 
-export function getSeatPosition(index: number, playerCount: number): SeatPosition {
-  const angle = (index / playerCount) * Math.PI * 2 - Math.PI / 2;
-  return {
-    x: CENTER_PERCENT + Math.cos(angle) * RING_RADIUS_PERCENT,
-    y: CENTER_PERCENT + Math.sin(angle) * RING_RADIUS_PERCENT,
-  };
+  return Array.from({ length: playerCount }, (_, index) => {
+    const angle = (index / playerCount) * Math.PI * 2 - Math.PI / 2;
+    return {
+      x: centerX + Math.cos(angle) * radius,
+      y: centerY + Math.sin(angle) * radius,
+    };
+  });
 }

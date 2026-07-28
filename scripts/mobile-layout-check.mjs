@@ -8,6 +8,7 @@ const browser = await chromium.launch({
 const viewports = [
   { width: 320, height: 568, name: "narrow-portrait" },
   { width: 360, height: 640, name: "small-portrait" },
+  { width: 360, height: 680, name: "physical-1080x2040", dpr: 3 },
   { width: 390, height: 844, name: "portrait" },
   { width: 568, height: 320, name: "narrow-landscape" },
   { width: 740, height: 360, name: "small-landscape" },
@@ -15,7 +16,10 @@ const viewports = [
 ];
 
 for (const viewport of viewports) {
-  const context = await browser.newContext({ viewport });
+  const context = await browser.newContext({
+    viewport: { width: viewport.width, height: viewport.height },
+    deviceScaleFactor: viewport.dpr ?? 1,
+  });
   const page = await context.newPage();
   await page.goto("http://127.0.0.1:5173/");
   await page.evaluate(() => localStorage.clear());
@@ -44,9 +48,10 @@ for (const viewport of viewports) {
       boxes,
     };
   });
+  const physicalResolution = await page.locator(".round-table").getAttribute("data-physical-resolution");
 
   await page.screenshot({ path: `artifacts/mobile-6-${viewport.name}.png`, fullPage: false });
-  console.log(JSON.stringify({ viewport, ...result }));
+  console.log(JSON.stringify({ viewport, physicalResolution, ...result }));
   await context.close();
 }
 

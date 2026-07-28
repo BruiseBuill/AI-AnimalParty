@@ -5,6 +5,9 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -32,3 +35,11 @@ jobs:
         with:
           name: animal-party-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+      - name: Publish latest debug APK
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-debug
+          name: Latest Android Debug APK
+          prerelease: true
+          make_latest: false
+          files: android/app/build/outputs/apk/debug/app-debug.apk

@@ -1,0 +1,10 @@
+{
+  "appId": "com.animalparty.notebook",
+  "appName": "动物派对推理手册",
+  "webDir": "dist",
+  "backgroundColor": "#173f32",
+  "android": {
+    "backgroundColor": "#173f32",
+    "allowMixedContent": false
+  }
+}

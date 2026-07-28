@@ -1,0 +1,32 @@
+{
+  "name": "animal-party-notes",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "dev:mobile": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "preview:mobile": "vite preview --host 0.0.0.0",
+    "android:add": "cap add android",
+    "android:sync": "cap sync android",
+    "android:open": "cap open android",
+    "android:apk": "cd android && gradlew.bat assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.4.2",
+    "@capacitor/core": "^8.4.2",
+    "@vitejs/plugin-react": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "typescript": "latest",
+    "vite": "latest"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.4.2",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "vitest": "^4.1.10"
+  }
+}

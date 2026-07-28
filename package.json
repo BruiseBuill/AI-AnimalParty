@@ -7,6 +7,7 @@
     "dev": "vite",
     "dev:mobile": "vite --host 0.0.0.0",
     "build": "tsc -b && vite build",
+    "test": "vitest run",
     "preview": "vite preview",
     "preview:mobile": "vite preview --host 0.0.0.0",
     "android:add": "cap add android",

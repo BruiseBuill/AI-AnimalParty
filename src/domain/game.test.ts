@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createGame, getCandidateRoles, getPublicRoleCount, toggleFoodEvidence } from "./game";
+import { addInferenceTag, createGame, getPublicRoleCount, removeInferenceTag } from "./game";
 
 describe("对局领域规则", () => {
   it("根据人数计算公开移出的身份数", () => {
@@ -8,21 +8,22 @@ describe("对局领域规则", () => {
     expect(getPublicRoleCount(5)).toBe(0);
   });
 
-  it("根据确认吃过的食物缩小身份候选", () => {
+  it("允许添加内容完全相同的推理标签", () => {
     const game = createGame(5, 1, "clockwise", []);
     let player = game.players[1];
-    player = toggleFoodEvidence(player, "鱼", "ate");
-    player = toggleFoodEvidence(player, "兽肉", "ate");
-    const changedGame = { ...game, players: game.players.map((item) => item.seat === player.seat ? player : item) };
+    player = addInferenceTag(player, { id: "tag-1", content: "鱼 · 吃过", round: 2 });
+    player = addInferenceTag(player, { id: "tag-2", content: "鱼 · 吃过", round: 2 });
 
-    expect(getCandidateRoles(changedGame, player)).toEqual(["熊", "蛇"]);
+    expect(player.inferenceTags).toHaveLength(2);
+    expect(player.inferenceTags[0].content).toBe(player.inferenceTags[1].content);
   });
 
-  it("吃过与不吃标签互斥", () => {
+  it("按记录编号取消单个推理标签", () => {
     const game = createGame(5, 1, "clockwise", []);
-    let player = toggleFoodEvidence(game.players[1], "草", "ate");
-    player = toggleFoodEvidence(player, "草", "cannot");
+    let player = addInferenceTag(game.players[1], { id: "tag-1", content: "身份 · 鹿", round: 1 });
+    player = addInferenceTag(player, { id: "tag-2", content: "身份 · 鹿", round: 1 });
+    player = removeInferenceTag(player, "tag-1");
 
-    expect(player.foodTags.草).toEqual({ held: false, ate: false, cannot: true });
+    expect(player.inferenceTags.map((tag) => tag.id)).toEqual(["tag-2"]);
   });
 });

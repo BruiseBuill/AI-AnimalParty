@@ -4,6 +4,11 @@ export type PlayerStatus = "alive" | "dead-hidden" | "dead-revealed";
 export type DeathCause = "starved" | "accused" | "wrong-accusation" | "other";
 export type RoleMark = "unknown" | "possible" | "suspected" | "excluded";
 export type FoodEvidence = { held: boolean; ate: boolean; cannot: boolean };
+export type InferenceTag = {
+  id: string;
+  content: string;
+  round: number;
+};
 
 export type PlayerRecord = {
   seat: number;
@@ -13,6 +18,7 @@ export type PlayerRecord = {
   confirmedRole?: Role;
   roleTags: Record<Role, RoleMark>;
   foodTags: Record<Food, FoodEvidence>;
+  inferenceTags: InferenceTag[];
   notes: string;
 };
 

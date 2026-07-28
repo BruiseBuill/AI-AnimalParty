@@ -1,5 +1,5 @@
-import { DIETS, FOODS, ROLES, type Food, type Role } from "./catalog";
-import type { FoodEvidence, Game, PlayerRecord, PlayerStatus, RoleMark } from "./model";
+import { FOODS, ROLES, type Food, type Role } from "./catalog";
+import type { FoodEvidence, Game, InferenceTag, PlayerRecord, PlayerStatus, RoleMark } from "./model";
 
 export const MIN_PLAYERS = 3;
 export const MAX_PLAYERS = 8;
@@ -39,40 +39,18 @@ export function createGame(
       status: "alive",
       roleTags: blankRoleTags(),
       foodTags: blankFoodTags(),
+      inferenceTags: [],
       notes: "",
     })),
   };
 }
 
-export function getCandidateRoles(game: Game, player: PlayerRecord): Role[] {
-  const confirmedElsewhere = game.players
-    .filter((other) => other.seat !== player.seat && other.confirmedRole)
-    .map((other) => other.confirmedRole!);
-
-  return ROLES.filter((role) => {
-    if (player.confirmedRole) return role === player.confirmedRole;
-    if (game.excludedRoles.includes(role) || confirmedElsewhere.includes(role) || player.roleTags[role] === "excluded") return false;
-
-    const diet = DIETS[role] as readonly Food[];
-    return FOODS.every((food) => {
-      const evidence = player.foodTags[food];
-      return !(evidence.ate && !diet.includes(food)) && !(evidence.cannot && diet.includes(food));
-    });
-  }).sort((a, b) => Number(player.roleTags[b] === "suspected") - Number(player.roleTags[a] === "suspected"));
+export function addInferenceTag(player: PlayerRecord, tag: InferenceTag): PlayerRecord {
+  return { ...player, inferenceTags: [...player.inferenceTags, tag] };
 }
 
-export function toggleFoodEvidence(player: PlayerRecord, food: Food, key: keyof FoodEvidence): PlayerRecord {
-  const current = player.foodTags[food];
-  const next = { ...current, [key]: !current[key] };
-  if (key === "ate" && !current.ate) next.cannot = false;
-  if (key === "cannot" && !current.cannot) next.ate = false;
-  return { ...player, foodTags: { ...player.foodTags, [food]: next } };
-}
-
-export function cycleRoleMark(player: PlayerRecord, role: Role): PlayerRecord {
-  const order: RoleMark[] = ["unknown", "possible", "suspected", "excluded"];
-  const next = order[(order.indexOf(player.roleTags[role]) + 1) % order.length];
-  return { ...player, roleTags: { ...player.roleTags, [role]: next } };
+export function removeInferenceTag(player: PlayerRecord, tagId: string): PlayerRecord {
+  return { ...player, inferenceTags: player.inferenceTags.filter((tag) => tag.id !== tagId) };
 }
 
 export function changePlayerStatus(player: PlayerRecord, status: PlayerStatus): PlayerRecord {

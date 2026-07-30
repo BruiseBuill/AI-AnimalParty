@@ -1,5 +1,8 @@
 import { chromium } from "playwright-core";
 
+const baseUrl = process.env.ANIMAL_PARTY_TEST_URL ?? "http://127.0.0.1:5173/";
+const disableResizeObserver = process.env.ANIMAL_PARTY_DISABLE_RESIZE_OBSERVER === "1";
+
 const browser = await chromium.launch({
   executablePath: "C:/Program Files/Google/Chrome/Application/chrome.exe",
   headless: true,
@@ -20,8 +23,13 @@ for (const viewport of viewports) {
     viewport: { width: viewport.width, height: viewport.height },
     deviceScaleFactor: viewport.dpr ?? 1,
   });
+  if (disableResizeObserver) {
+    await context.addInitScript(() => {
+      Object.defineProperty(window, "ResizeObserver", { value: undefined, configurable: true });
+    });
+  }
   const page = await context.newPage();
-  await page.goto("http://127.0.0.1:5173/");
+  await page.goto(baseUrl);
   await page.evaluate(() => localStorage.clear());
   await page.reload();
   await page.getByRole("button", { name: "6", exact: true }).click();
@@ -49,9 +57,28 @@ for (const viewport of viewports) {
     };
   });
   const physicalResolution = await page.locator(".round-table").getAttribute("data-physical-resolution");
+  const surface = await page.evaluate(() => {
+    const area = document.querySelector(".table-area").getBoundingClientRect();
+    const table = document.querySelector(".round-table").getBoundingClientRect();
+    const mobileBrandDetails = getComputedStyle(document.querySelector(".mini-brand div")).display;
+    return {
+      areaHeight: area.height,
+      tableWidth: table.width,
+      tableHeight: table.height,
+      tableVisible: table.width > 0 && table.height > 0 && table.bottom > 0 && table.top < innerHeight,
+      mobileBrandDetails,
+    };
+  });
+
+  if (result.count !== 6 || result.fullyVisible !== 6 || result.overlaps.length > 0 || !surface.tableVisible) {
+    throw new Error(`Invalid round-table layout for ${viewport.name}: ${JSON.stringify({ ...result, ...surface })}`);
+  }
+  if (viewport.width <= 600 && surface.mobileBrandDetails !== "none") {
+    throw new Error(`Mobile media query did not apply for ${viewport.name}`);
+  }
 
   await page.screenshot({ path: `artifacts/mobile-6-${viewport.name}.png`, fullPage: false });
-  console.log(JSON.stringify({ viewport, physicalResolution, ...result }));
+  console.log(JSON.stringify({ viewport, physicalResolution, ...result, ...surface }));
   await context.close();
 }
 

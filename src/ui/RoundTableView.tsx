@@ -22,13 +22,15 @@ export function RoundTableView({ game, livingPlayers, onSelectPlayer }: RoundTab
     {game.players.map((player, index) => {
       const position = seatPositions[index];
       const isSelf = player.seat === game.selfSeat;
+      const fallbackAngle = (index / game.playerCount) * Math.PI * 2 - Math.PI / 2;
+      const fallbackLeft = 50 + Math.cos(fallbackAngle) * 40;
+      const fallbackTop = 50 + Math.sin(fallbackAngle) * 40;
       return <button
         key={player.seat}
         className={`player-token ${isSelf ? "self" : ""} ${player.status}`}
         style={{
-          left: position ? `${position.x}px` : "50%",
-          top: position ? `${position.y}px` : "50%",
-          visibility: position ? "visible" : "hidden",
+          left: position ? `${position.x}px` : `${fallbackLeft}%`,
+          top: position ? `${position.y}px` : `${fallbackTop}%`,
         }}
         onClick={() => !isSelf && onSelectPlayer(player.seat)}
         disabled={isSelf}

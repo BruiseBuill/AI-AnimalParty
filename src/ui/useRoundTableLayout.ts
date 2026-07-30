@@ -17,8 +17,11 @@ export function useRoundTableLayout(playerCount: number): RoundTableLayout {
     const table = tableRef.current;
     if (!table) return;
 
+    let animationFrame = 0;
+
     const update = () => {
       const bounds = table.getBoundingClientRect();
+      if (bounds.width <= 0 || bounds.height <= 0) return;
       const avatarDiameter = Number.parseFloat(getComputedStyle(table).getPropertyValue("--avatar-size")) || 49;
       setDisplayMetrics(getCurrentDisplayMetrics());
       setSeatPositions(getSeatPositions(playerCount, {
@@ -28,14 +31,19 @@ export function useRoundTableLayout(playerCount: number): RoundTableLayout {
       }));
     };
 
-    const resizeObserver = new ResizeObserver(update);
-    resizeObserver.observe(table);
+    // Measure before installing observers so older WebViews still get a usable layout.
+    update();
+    animationFrame = window.requestAnimationFrame(update);
+    const resizeObserver = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(update);
+    resizeObserver?.observe(table);
+    window.addEventListener("resize", update);
     window.addEventListener("orientationchange", update);
     window.visualViewport?.addEventListener("resize", update);
-    update();
 
     return () => {
-      resizeObserver.disconnect();
+      window.cancelAnimationFrame(animationFrame);
+      resizeObserver?.disconnect();
+      window.removeEventListener("resize", update);
       window.removeEventListener("orientationchange", update);
       window.visualViewport?.removeEventListener("resize", update);
     };

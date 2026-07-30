@@ -5,7 +5,7 @@ import type { DeathCause, Game, PlayerRecord, PlayerStatus } from "./domain/mode
 import { useGameSession } from "./application/useGameSession";
 import { browserGameStorage } from "./platform/gameStorage";
 import { createRecordId } from "./platform/id";
-import { useRoundTableLayout } from "./ui/useRoundTableLayout";
+import { RoundTableView } from "./ui/RoundTableView";
 
 function Setup({ onStart, saved, onContinue }: { onStart: (game: Game) => void; saved: Game | null; onContinue: () => void }) {
   const [count, setCount] = useState(5);
@@ -110,29 +110,13 @@ function TableView({ game, setGame, onExit }: { game: Game; setGame: (next: Game
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   const selected = game.players.find((p) => p.seat === selectedSeat);
   const living = game.players.filter((p) => p.status === "alive").length;
-  const { tableRef, seatPositions, displayMetrics } = useRoundTableLayout(game.playerCount);
   const updatePlayer = (nextPlayer: PlayerRecord) => setGame(replacePlayer(game, nextPlayer));
 
   return <main className="game-shell">
     <header className="topbar"><div className="mini-brand"><span>AP</span><div><strong>动物派对</strong><small>私人推理手册</small></div></div><div className="round-control"><button onClick={() => setGame(changeRound(game, -1))}>−</button><span><small>ROUND</small><b>{game.round}</b></span><button onClick={() => setGame(changeRound(game, 1))}>＋</button></div><div className="header-actions"><button onClick={onExit}>新对局</button></div></header>
     <section className="table-area">
       <div className="table-copy"><p className="eyebrow">PRIVATE OBSERVATION TABLE</p><h1>点击一位玩家<br />开始记录线索</h1><p>{living} 人存活 · {game.direction === "clockwise" ? "顺时针" : "逆时针"}行动</p></div>
-      <div
-        className="round-table"
-        ref={tableRef}
-        data-physical-resolution={displayMetrics ? `${displayMetrics.physicalWidth}x${displayMetrics.physicalHeight}` : undefined}
-        data-device-pixel-ratio={displayMetrics?.devicePixelRatio}
-      >
-        <div className="table-center"><span>第 {game.round} 轮</span><small>{living} / {game.playerCount} 存活</small></div>
-        {game.players.map((player, index) => {
-          const position = seatPositions[index];
-          const isSelf = player.seat === game.selfSeat;
-          return <button key={player.seat} className={`player-token ${isSelf ? "self" : ""} ${player.status}`} style={{ left: position ? `${position.x}px` : "50%", top: position ? `${position.y}px` : "50%", visibility: position ? "visible" : "hidden" }} onClick={() => !isSelf && setSelectedSeat(player.seat)} disabled={isSelf}>
-            <span className="avatar">{player.confirmedRole ? ROLE_ICONS[player.confirmedRole] : isSelf ? "✦" : player.status === "dead-hidden" ? "?" : player.seat}</span>
-            <b>{player.name}</b><small>{isSelf ? "我的位置" : player.status === "alive" ? "查看推理" : player.status === "dead-hidden" ? "等待揭秘" : player.confirmedRole || "已淘汰"}</small>
-          </button>;
-        })}
-      </div>
+      <RoundTableView game={game} livingPlayers={living} onSelectPlayer={setSelectedSeat} />
       <div className="legend"><span><i className="dot alive-dot" />存活</span><span><i className="dot dead-dot" />已淘汰</span>{game.excludedRoles.length > 0 && <span>公开移出：{game.excludedRoles.map((r) => `${ROLE_ICONS[r]}${r}`).join("、")}</span>}</div>
     </section>
     {selected && <PlayerDrawer game={game} player={selected} onChange={updatePlayer} onClose={() => setSelectedSeat(null)} />}

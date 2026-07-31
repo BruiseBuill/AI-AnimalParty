@@ -8,7 +8,7 @@ type RoundTableLayout = {
   displayMetrics: DisplayMetrics | null;
 };
 
-export function useRoundTableLayout(playerCount: number): RoundTableLayout {
+export function useRoundTableLayout(playerCount: number, bottomSeatIndex: number): RoundTableLayout {
   const tableRef = useRef<HTMLDivElement>(null);
   const [seatPositions, setSeatPositions] = useState<SeatPosition[]>([]);
   const [displayMetrics, setDisplayMetrics] = useState<DisplayMetrics | null>(null);
@@ -24,11 +24,15 @@ export function useRoundTableLayout(playerCount: number): RoundTableLayout {
       if (bounds.width <= 0 || bounds.height <= 0) return;
       const avatarDiameter = Number.parseFloat(getComputedStyle(table).getPropertyValue("--avatar-size")) || 49;
       setDisplayMetrics(getCurrentDisplayMetrics());
-      setSeatPositions(getSeatPositions(playerCount, {
-        width: bounds.width,
-        height: bounds.height,
-        avatarDiameter,
-      }));
+      setSeatPositions(getSeatPositions(
+        playerCount,
+        {
+          width: bounds.width,
+          height: bounds.height,
+          avatarDiameter,
+        },
+        bottomSeatIndex,
+      ));
     };
 
     // Measure before installing observers so older WebViews still get a usable layout.
@@ -47,7 +51,7 @@ export function useRoundTableLayout(playerCount: number): RoundTableLayout {
       window.removeEventListener("orientationchange", update);
       window.visualViewport?.removeEventListener("resize", update);
     };
-  }, [playerCount]);
+  }, [bottomSeatIndex, playerCount]);
 
   return { tableRef, seatPositions, displayMetrics };
 }

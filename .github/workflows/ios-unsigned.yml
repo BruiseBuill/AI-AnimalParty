@@ -1,0 +1,67 @@
+name: Build iOS Unsigned IPA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      # Resolve dependencies on macOS so npm selects the runner's native bindings.
+      - run: npm install --include=dev
+      - run: npm run build
+      - run: npx cap add ios
+      - run: npx cap sync ios
+      - name: Build unsigned iOS app
+        run: |
+          xcodebuild \
+            -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphoneos \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build
+      - name: Package unsigned IPA
+        run: |
+          APP_PATH="$RUNNER_TEMP/DerivedData/Build/Products/Debug-iphoneos/App.app"
+          test -d "$APP_PATH"
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          cp -R "$APP_PATH" "$RUNNER_TEMP/ipa/Payload/"
+          cd "$RUNNER_TEMP/ipa"
+          ditto -c -k --sequesterRsrc --keepParent Payload "$GITHUB_WORKSPACE/AnimalParty-ios-unsigned.ipa"
+          unzip -t "$GITHUB_WORKSPACE/AnimalParty-ios-unsigned.ipa"
+          shasum -a 256 "$GITHUB_WORKSPACE/AnimalParty-ios-unsigned.ipa" |
+            sed 's#  .*/#  #' > "$GITHUB_WORKSPACE/AnimalParty-ios-unsigned.ipa.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: animal-party-ios-unsigned
+          path: |
+            AnimalParty-ios-unsigned.ipa
+            AnimalParty-ios-unsigned.ipa.sha256
+      - name: Publish latest unsigned iOS build
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest-ios-debug
+          name: Latest iOS Unsigned Debug Build
+          prerelease: true
+          make_latest: false
+          body: This IPA is unsigned and must be signed with an Apple certificate and provisioning profile before installation on a physical device.
+          files: |
+            AnimalParty-ios-unsigned.ipa
+            AnimalParty-ios-unsigned.ipa.sha256

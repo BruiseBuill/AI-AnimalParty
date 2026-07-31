@@ -22,4 +22,15 @@ describe("圆桌座位布局", () => {
     const radii = positions.map((position) => Math.hypot(position.x - 210, position.y - 150));
     radii.forEach((radius) => expect(radius).toBeCloseTo(124, 10));
   });
+
+  it.each([3, 4, 5, 6, 7, 8])("%i 人局始终把自己的座位放在圆桌正下方", (playerCount) => {
+    const geometry = { width: 360, height: 360, avatarDiameter: 50 };
+    const expectedBottom = geometry.height - geometry.avatarDiameter / 2 - 4;
+
+    for (let selfIndex = 0; selfIndex < playerCount; selfIndex += 1) {
+      const positions = getSeatPositions(playerCount, geometry, selfIndex);
+      expect(positions[selfIndex].x).toBeCloseTo(geometry.width / 2, 10);
+      expect(positions[selfIndex].y).toBeCloseTo(expectedBottom, 10);
+    }
+  });
 });

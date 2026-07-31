@@ -1,5 +1,6 @@
 import { ROLE_ICONS } from "../domain/catalog";
 import type { Game } from "../domain/model";
+import { getSeatAngle } from "./tableLayout";
 import { useRoundTableLayout } from "./useRoundTableLayout";
 
 type RoundTableViewProps = {
@@ -9,7 +10,8 @@ type RoundTableViewProps = {
 };
 
 export function RoundTableView({ game, livingPlayers, onSelectPlayer }: RoundTableViewProps) {
-  const { tableRef, seatPositions, displayMetrics } = useRoundTableLayout(game.playerCount);
+  const selfIndex = Math.max(0, game.players.findIndex((player) => player.seat === game.selfSeat));
+  const { tableRef, seatPositions, displayMetrics } = useRoundTableLayout(game.playerCount, selfIndex);
 
   return <div
     className="round-table"
@@ -22,7 +24,7 @@ export function RoundTableView({ game, livingPlayers, onSelectPlayer }: RoundTab
     {game.players.map((player, index) => {
       const position = seatPositions[index];
       const isSelf = player.seat === game.selfSeat;
-      const fallbackAngle = (index / game.playerCount) * Math.PI * 2 - Math.PI / 2;
+      const fallbackAngle = getSeatAngle(game.playerCount, index, selfIndex);
       const fallbackLeft = 50 + Math.cos(fallbackAngle) * 40;
       const fallbackTop = 50 + Math.sin(fallbackAngle) * 40;
       return <button

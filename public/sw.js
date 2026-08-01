@@ -1,5 +1,11 @@
 const CACHE_NAME = "animal-party-v1";
-const APP_SHELL = ["/", "/index.html", "/manifest.webmanifest", "/app-icon.svg"];
+const BASE_PATH = new URL("./", self.registration.scope).pathname;
+const APP_SHELL = [
+  BASE_PATH,
+  `${BASE_PATH}index.html`,
+  `${BASE_PATH}manifest.webmanifest`,
+  `${BASE_PATH}app-icon.svg`,
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)));
@@ -22,6 +28,8 @@ self.addEventListener("fetch", (event) => {
         caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         return response;
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match("/index.html")))
+      .catch(() =>
+        caches.match(event.request).then((cached) => cached || caches.match(`${BASE_PATH}index.html`))
+      )
   );
 });

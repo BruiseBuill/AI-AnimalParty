@@ -2,8 +2,8 @@
   "name": "动物派对 · 推理手册",
   "short_name": "动物派对",
   "description": "动物派对桌游的私人推理与线索记录工具",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#f8f3e8",
@@ -11,7 +11,7 @@
   "lang": "zh-CN",
   "icons": [
     {
-      "src": "/app-icon.svg",
+      "src": "./app-icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"

@@ -10,7 +10,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
 
 if (!platformRuntime.isNativeApp && "serviceWorker" in navigator && import.meta.env.PROD) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(() => {
+    navigator.serviceWorker.register(`${import.meta.env.BASE_URL}sw.js`).catch(() => {
       // 离线能力注册失败不会影响普通网页使用。
     });
   });
